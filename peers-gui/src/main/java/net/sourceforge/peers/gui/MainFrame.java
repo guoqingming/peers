@@ -19,37 +19,40 @@
 
 package net.sourceforge.peers.gui;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.*;
+import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.util.Iterator;
+import java.util.List;
 
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 
+import cn.hutool.core.util.ReUtil;
 import net.sourceforge.peers.FileLogger;
 import net.sourceforge.peers.Logger;
+import net.sourceforge.peers.ext.cache.LocalCache;
+import net.sourceforge.peers.ext.domain.DemoData;
+import net.sourceforge.peers.ext.excel.parse.ExcelUtils;
 import net.sourceforge.peers.javaxsound.JavaxSoundManager;
 import net.sourceforge.peers.media.AbstractSoundManager;
 import net.sourceforge.peers.sip.Utils;
 import net.sourceforge.peers.sip.transport.SipRequest;
 import net.sourceforge.peers.sip.transport.SipResponse;
+import org.apache.commons.collections4.CollectionUtils;
 
 public class MainFrame implements WindowListener, ActionListener {
+
+    private static final String column[] = {"Phone", "ContractNo", "Name", "IdNo"};
 
     public static void main(final String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -69,11 +72,18 @@ public class MainFrame implements WindowListener, ActionListener {
     private JPanel dialerPanel;
     private JTextField uri;
     private JButton actionButton;
+
+    private JTable jt;
+    private JButton nextButton;
     private JLabel statusLabel;
 
     private EventManager eventManager;
     private Registration registration;
     private Logger logger;
+
+    public JTextField getUri() {
+        return uri;
+    }
 
     public MainFrame(final String[] args) {
         String peersHome = Utils.DEFAULT_PEERS_HOME;
@@ -94,7 +104,7 @@ public class MainFrame implements WindowListener, ActionListener {
         if (!Utils.DEFAULT_PEERS_HOME.equals(peersHome)) {
             title = peersHome;
         }
-        title += "/Peers: SIP User-Agent";
+        title += "Peers";
         mainFrame = new JFrame(title);
         mainFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         mainFrame.addWindowListener(this);
@@ -103,17 +113,92 @@ public class MainFrame implements WindowListener, ActionListener {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
         dialerPanel = new JPanel();
-
-        uri = new JTextField("sip:", 15);
-        uri.addActionListener(this);
-
         actionButton = new JButton("Call");
         actionButton.addActionListener(this);
+        uri = new JTextField("sip:", 15);
+//        uri.addActionListener(this);
+        uri.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                System.out.println("---------insertUpdate---------------");
+//                actionButton.doClick();
+            }
 
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+
+            }
+
+        });
+        actionButton = new JButton("Call");
+        actionButton.addActionListener(this);
         dialerPanel.add(uri);
         dialerPanel.add(actionButton);
-        dialerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        nextButton = new JButton("Next");
+        nextButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Next button clicked");
+                if (!LocalCache.getInstance().getCache().iterator().hasNext()) {
+                    JOptionPane.showMessageDialog(null, "所有电话已拨打完毕！");
+                    return;
+                }
+                String phone = ReUtil.get("(?<=sip:)(\\d*?)(?=@)", uri.getText(), 0);
 
+                LocalCache.getInstance().getCache().remove(phone);
+                DemoData next = LocalCache.getInstance().getCache().iterator().next();
+                uri.setText("sip:" + next.getPhone() + "@tinysnail.site");
+                actionButton.doClick();
+                setTableData();
+            }
+        });
+        dialerPanel.add(nextButton);
+        dialerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JButton importButton = new JButton("Import");
+        importButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+            //filtering files
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("*.xls", "xls", "xlsx");
+            fileChooser.addChoosableFileFilter(filter);
+            fileChooser.setDialogTitle("选择文件");
+            fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+            int res = fileChooser.showSaveDialog(null);
+            //if the user clicks on save in Jfilechooser
+            if (res == JFileChooser.APPROVE_OPTION) {
+                File selFile = fileChooser.getSelectedFile();
+                String path = selFile.getAbsolutePath();
+                List<DemoData> rows = ExcelUtils.getRows(path, DemoData.class);
+                if (CollectionUtils.isEmpty(rows)) {
+                    JOptionPane.showMessageDialog(null, "数据文件为空");
+                    return;
+                }
+                for (DemoData row : rows) {
+                    LocalCache.getInstance().getCache().put(row.getPhone(), row);
+                }
+                JOptionPane.showMessageDialog(null, "数据导入成功");
+                Iterator<DemoData> iterator = LocalCache.getInstance().getCache().iterator();
+                if (iterator.hasNext()) {
+                    DemoData next = iterator.next();
+                    uri.setText("sip:" + next.getPhone() + "@tinysnail.site");
+                }
+                setTableData();
+            }
+
+        });
+        dialerPanel.add(importButton, BorderLayout.NORTH);
+        int size = LocalCache.getInstance().getCache().size();
+        String arr[][] = new String[size][4];
+        jt = new JTable(arr, column);
+        jt.setBounds(30, 40, 200, 300);
+        JScrollPane sp = new JScrollPane(jt);
+        dialerPanel.add(sp);
         statusLabel = new JLabel(title);
         statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         Border border = BorderFactory.createEmptyBorder(0, 2, 2, 2);
@@ -142,7 +227,7 @@ public class MainFrame implements WindowListener, ActionListener {
                 }
                 eventManager = new EventManager(MainFrame.this,
                         peersHome, logger, soundManager);
-                    eventManager.register();
+                eventManager.register();
             }
         }, "gui-event-manager");
         thread.start();
@@ -154,6 +239,7 @@ public class MainFrame implements WindowListener, ActionListener {
         } catch (InterruptedException e) {
             return;
         }
+//        batchCallButton.addActionListener(eventManager);
         menuItem.addActionListener(eventManager);
         menu.add(menuItem);
         menuBar.add(menu);
@@ -163,6 +249,11 @@ public class MainFrame implements WindowListener, ActionListener {
         menuItem = new JMenuItem("Account");
         menuItem.setMnemonic('A');
         menuItem.setActionCommand(EventManager.ACTION_ACCOUNT);
+        menuItem.addActionListener(eventManager);
+        menu.add(menuItem);
+        menuItem = new JMenuItem("Export Call Result");
+        menuItem.setMnemonic('E');
+        menuItem.setActionCommand(EventManager.ACTION_EXPORT_CALL_RESULT);
         menuItem.addActionListener(eventManager);
         menu.add(menuItem);
         menuItem = new JMenuItem("Preferences");
@@ -250,8 +341,18 @@ public class MainFrame implements WindowListener, ActionListener {
 
     public void socketExceptionOnStartup() {
         JOptionPane.showMessageDialog(mainFrame, "peers SIP port " +
-        		"unavailable, exiting");
+                "unavailable, exiting");
         System.exit(1);
+    }
+
+    public void setTableData() {
+        TableModel tableModel = new DefaultTableModel(LocalCache.getInstance().getDataArray(), column);
+        jt.setModel(tableModel);
+        if (jt.getModel().getRowCount() == 0) {
+            return;
+        }
+        jt.setSelectionForeground(Color.PINK);
+        jt.addRowSelectionInterval(0, 0);
     }
 
 }

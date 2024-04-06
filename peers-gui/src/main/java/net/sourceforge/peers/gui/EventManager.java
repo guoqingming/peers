@@ -19,6 +19,7 @@
 
 package net.sourceforge.peers.gui;
 
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -31,9 +32,13 @@ import java.util.Map;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 import net.sourceforge.peers.Config;
 import net.sourceforge.peers.Logger;
+import net.sourceforge.peers.ext.cache.LocalCache;
+import net.sourceforge.peers.ext.domain.DemoData;
 import net.sourceforge.peers.media.AbstractSoundManager;
 import net.sourceforge.peers.media.MediaManager;
 import net.sourceforge.peers.sip.RFC3261;
@@ -61,6 +66,8 @@ public class EventManager implements SipListener, MainFrameListener,
     public static final String ACTION_PREFERENCES   = "Preferences";
     public static final String ACTION_ABOUT         = "About";
     public static final String ACTION_DOCUMENTATION = "Documentation";
+    public static final String ACTION_EXPORT_CALL_RESULT= "ExportCallResult";
+    public static final String ACTION_BATCH_CALL_Start= "batchCallStart";
 
     private UserAgent userAgent;
     private MainFrame mainFrame;
@@ -150,7 +157,7 @@ public class EventManager implements SipListener, MainFrameListener,
     @Override
     public void calleePickup(final SipResponse sipResponse) {
         SwingUtilities.invokeLater(new Runnable() {
-            
+
             @Override
             public void run() {
                 CallFrame callFrame = getCallFrame(sipResponse);
@@ -191,7 +198,7 @@ public class EventManager implements SipListener, MainFrameListener,
                 final String fromValue = from.getValue();
                 String callId = Utils.getMessageCallId(sipRequest);
                 CallFrame callFrame = new CallFrame(fromValue, callId,
-                        EventManager.this, logger);
+                        EventManager.this, logger,sipRequest);
                 callFrames.put(callId, callFrame);
                 callFrame.setSipRequest(sipRequest);
                 callFrame.incomingCall();
@@ -256,27 +263,31 @@ public class EventManager implements SipListener, MainFrameListener,
 
     }
 
+    private void startCall(String uri) {
+        String callId = Utils.generateCallID(
+                userAgent.getConfig().getLocalInetAddress());
+        SipRequest sipRequest;
+        try {
+            sipRequest = userAgent.invite(uri, callId);
+        } catch (SipUriSyntaxException e) {
+            logger.error(e.getMessage(), e);
+            mainFrame.setLabelText(e.getMessage());
+            return;
+        }
+        CallFrame callFrame = new CallFrame(uri, callId,
+                EventManager.this, logger,sipRequest);
+        callFrames.put(callId, callFrame);
+
+        callFrame.setSipRequest(sipRequest);
+        callFrame.callClicked();
+    }
     @Override
     public void callClicked(final String uri) {
         SwingUtilities.invokeLater(new Runnable() {
             
             @Override
             public void run() {
-                String callId = Utils.generateCallID(
-                        userAgent.getConfig().getLocalInetAddress());
-                CallFrame callFrame = new CallFrame(uri, callId,
-                        EventManager.this, logger);
-                callFrames.put(callId, callFrame);
-                SipRequest sipRequest;
-                try {
-                    sipRequest = userAgent.invite(uri, callId);
-                } catch (SipUriSyntaxException e) {
-                    logger.error(e.getMessage(), e);
-                    mainFrame.setLabelText(e.getMessage());
-                    return;
-                }
-                callFrame.setSipRequest(sipRequest);
-                callFrame.callClicked();
+                startCall(uri);
             }
         });
 
@@ -312,6 +323,7 @@ public class EventManager implements SipListener, MainFrameListener,
             @Override
             public void run() {
                 userAgent.terminate(sipRequest);
+
             }
         });
     }
@@ -368,6 +380,9 @@ public class EventManager implements SipListener, MainFrameListener,
                     windowClosed();
                 }
             };
+            if (runnable != null) {
+                SwingUtilities.invokeLater(runnable);
+            }
         } else if (ACTION_ACCOUNT.equals(action)) {
             runnable = new Runnable() {
                 @Override
@@ -381,6 +396,9 @@ public class EventManager implements SipListener, MainFrameListener,
                     }
                 }
             };
+            if (runnable != null) {
+                SwingUtilities.invokeLater(runnable);
+            }
         } else if (ACTION_PREFERENCES.equals(action)) {
             runnable = new Runnable() {
                 @Override
@@ -397,6 +415,9 @@ public class EventManager implements SipListener, MainFrameListener,
                     aboutFrame.setVisible(true);
                 }
             };
+            if (runnable != null) {
+                SwingUtilities.invokeLater(runnable);
+            }
         } else if (ACTION_DOCUMENTATION.equals(action)) {
             runnable = new Runnable() {
                 @Override
@@ -411,10 +432,39 @@ public class EventManager implements SipListener, MainFrameListener,
                     }
                 }
             };
+            if (runnable != null) {
+                SwingUtilities.invokeLater(runnable);
+            }
+        } else if (ACTION_EXPORT_CALL_RESULT.equals(action)) {
+            runnable = new Runnable() {
+                @Override
+                public void run() {
+                    ExportResultFrame aboutFrame = new ExportResultFrame(
+                            logger);
+                    aboutFrame.setVisible(true);
+                }
+            };
+            if (runnable != null) {
+                SwingUtilities.invokeLater(runnable);
+            }
+        } else if (ACTION_BATCH_CALL_Start.equals(action)) {
+            for (DemoData datum : LocalCache.getInstance().getData()) {
+                runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        for (DemoData datum : LocalCache.getInstance().getData()) {
+                            startCall("sip:"+datum.getPhone()+"@fs.tinysnail.site");
+                        }
+                    }
+                };
+                if (runnable != null) {
+                    SwingUtilities.invokeLater(runnable);
+                }
+            }
         }
-        if (runnable != null) {
-            SwingUtilities.invokeLater(runnable);
-        }
+
+
     }
+
 
 }

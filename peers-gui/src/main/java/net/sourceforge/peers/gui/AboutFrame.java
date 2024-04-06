@@ -19,9 +19,7 @@
 
 package net.sourceforge.peers.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -103,6 +101,7 @@ public class AboutFrame extends JFrame implements ActionListener,
 
         panel = new JPanel();
         JButton button = new JButton("Close");
+        button.setBackground(Color.orange);
         button.addActionListener(this);
         panel.add(button);
         add(panel, BorderLayout.PAGE_END);

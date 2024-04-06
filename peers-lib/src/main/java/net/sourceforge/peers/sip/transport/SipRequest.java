@@ -26,6 +26,7 @@ public class SipRequest extends SipMessage {
     protected String method;
     protected SipURI requestUri;
     //protected String requestUri;
+    protected String phone;
     
     public SipRequest(String method, SipURI requestUri) {
         super();
@@ -49,5 +50,12 @@ public class SipRequest extends SipMessage {
     public SipURI getRequestUri() {
         return requestUri;
     }
-    
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
 }

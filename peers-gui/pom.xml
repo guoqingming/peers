@@ -6,7 +6,11 @@
   <artifactId>peers-gui</artifactId>
   <version>0.5.1-SNAPSHOT</version>
   <packaging>jar</packaging>
-
+  <parent>
+    <groupId>net.sourceforge.peers</groupId>
+    <artifactId>peers</artifactId>
+    <version>0.5.1-SNAPSHOT</version>
+  </parent>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -21,6 +25,11 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>peers-javaxsound</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sourceforge.peers</groupId>
+      <artifactId>peers-ext</artifactId>
+      <version>0.5.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

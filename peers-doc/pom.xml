@@ -6,7 +6,11 @@
   <artifactId>peers-doc</artifactId>
   <version>0.5.1-SNAPSHOT</version>
   <packaging>jar</packaging>
-
+  <parent>
+    <groupId>net.sourceforge.peers</groupId>
+    <artifactId>peers</artifactId>
+    <version>0.5.1-SNAPSHOT</version>
+  </parent>
   <build>
     <plugins>
       <plugin>

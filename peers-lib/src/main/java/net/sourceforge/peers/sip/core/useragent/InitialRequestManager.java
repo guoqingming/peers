@@ -19,6 +19,7 @@
 
 package net.sourceforge.peers.sip.core.useragent;
 
+import cn.hutool.core.util.ReUtil;
 import net.sourceforge.peers.Logger;
 import net.sourceforge.peers.sip.RFC3261;
 import net.sourceforge.peers.sip.Utils;
@@ -178,6 +179,8 @@ public class InitialRequestManager extends RequestManager
         }
         createInitialRequestEnd(sipRequest, clientTransaction, profileUri,
                 messageInterceptor, true);
+        String phone = ReUtil.get("(?<=sip:)(\\d*?)(?=@)", sipRequest.getRequestUri().toString(), 0);
+        sipRequest.setPhone(phone);
         return sipRequest;
     }
     
@@ -309,4 +312,9 @@ public class InitialRequestManager extends RequestManager
         
     }
 
+    public static void main(String[] args) {
+        String str = "sip:1000@fs.tinysnail.site";
+        String s = ReUtil.get("(?<=sip:)(\\d*?)(?=@)", str, 0);
+        System.out.println(s);
+    }
 }

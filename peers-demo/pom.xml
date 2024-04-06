@@ -6,6 +6,11 @@
   <artifactId>peers-demo</artifactId>
   <version>0.5.1-SNAPSHOT</version>
   <name>peers-demo</name>
+  <parent>
+    <groupId>net.sourceforge.peers</groupId>
+    <artifactId>peers</artifactId>
+    <version>0.5.1-SNAPSHOT</version>
+  </parent>
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
