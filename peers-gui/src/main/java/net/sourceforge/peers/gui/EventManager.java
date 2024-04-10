@@ -35,6 +35,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
+import cn.hutool.core.lang.Validator;
 import cn.hutool.core.util.ReUtil;
 import net.sourceforge.peers.Config;
 import net.sourceforge.peers.Logger;
@@ -273,7 +274,7 @@ public class EventManager implements SipListener, MainFrameListener,
         SipRequest sipRequest;
         try {
             String url = "";
-            boolean phone = ReUtil.isMatch("^1/d{8}$", uri);
+            boolean phone =  Validator.isMobile(uri);
             if (phone) {
                 url = "sip:0" + uri +"@"+ userAgent.getDomain();
             }else {
