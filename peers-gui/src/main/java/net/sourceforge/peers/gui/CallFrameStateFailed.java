@@ -31,7 +31,7 @@ public class CallFrameStateFailed extends CallFrameState {
         super(id, callFrame, logger);
         callPanel = new JPanel();
         callPanel.add(new JLabel("Failed"));
-        JButton closeButton = new JButton("Close");
+        JButton closeButton = new JButton("关闭");
         closeButton.setActionCommand(CallFrame.CLOSE_ACTION_COMMAND);
         closeButton.addActionListener(callFrame);
         callPanel.add(closeButton);

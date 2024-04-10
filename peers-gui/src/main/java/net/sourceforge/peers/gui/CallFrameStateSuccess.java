@@ -25,13 +25,16 @@ import javax.swing.JPanel;
 
 import net.sourceforge.peers.Logger;
 
+import java.awt.*;
+
 public class CallFrameStateSuccess extends CallFrameState {
 
     public CallFrameStateSuccess(String id, CallFrame callFrame, Logger logger) {
         super(id, callFrame, logger);
         callPanel = new JPanel();
         callPanel.add(new JLabel("Talking"));
-        JButton hangupButton = new JButton("Hangup");
+        JButton hangupButton = new JButton("挂断");
+        hangupButton.setBackground(new Color(0xC24E4D));
         hangupButton.setActionCommand(CallFrame.HANGUP_ACTION_COMMAND);
         hangupButton.addActionListener(callFrame);
         callPanel.add(hangupButton);

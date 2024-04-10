@@ -35,6 +35,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
+import cn.hutool.core.util.ReUtil;
 import net.sourceforge.peers.Config;
 import net.sourceforge.peers.Logger;
 import net.sourceforge.peers.ext.cache.LocalCache;
@@ -264,11 +265,21 @@ public class EventManager implements SipListener, MainFrameListener,
     }
 
     private void startCall(String uri) {
+        if (uri == null ||uri.isEmpty()) {
+            return;
+        }
         String callId = Utils.generateCallID(
                 userAgent.getConfig().getLocalInetAddress());
         SipRequest sipRequest;
         try {
-            sipRequest = userAgent.invite(uri, callId);
+            String url = "";
+            boolean phone = ReUtil.isMatch("^1/d{8}$", uri);
+            if (phone) {
+                url = "sip:0" + uri +"@"+ userAgent.getDomain();
+            }else {
+                url = "sip:" + uri+"@" + userAgent.getDomain();
+            }
+            sipRequest = userAgent.invite(url, callId);
         } catch (SipUriSyntaxException e) {
             logger.error(e.getMessage(), e);
             mainFrame.setLabelText(e.getMessage());

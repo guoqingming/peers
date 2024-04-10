@@ -103,7 +103,7 @@ public class CallFrame implements ActionListener, WindowListener {
 //        contentPane.add(sp);
 //        sp.setSize(300,200);
 //        contentPane.add(jt);
-        JLabel resultLabel = new JLabel("Call Result: ");
+        JLabel resultLabel = new JLabel("呼叫结果: ");
         JRadioButton button1 = new JRadioButton("正常接听");
         JRadioButton button2 = new JRadioButton("无人接听");
         JRadioButton button3 = new JRadioButton("关机");
@@ -115,11 +115,6 @@ public class CallFrame implements ActionListener, WindowListener {
         resultButtonGroup.add(button3);
         resultButtonGroup.add(button4);
         resultButtonGroup.add(button5);
-//        contentPane.add(button1);
-//        contentPane.add(button2);
-//        contentPane.add(button3);
-//        contentPane.add(button4);
-//        contentPane.add(button5);
         JPanel resultPanel = new JPanel(new FlowLayout(FlowLayout.LEADING,50,50));
         resultPanel.add(resultLabel);
         resultPanel.add(button1);

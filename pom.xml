@@ -21,6 +21,7 @@
     <module>peers-js</module>
     <module>peers-jws</module>
     <module>peers-lib</module>
+    <module>peers-ext</module>
   </modules>
 
 </project>

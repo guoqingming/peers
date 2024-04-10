@@ -312,9 +312,4 @@ public class InitialRequestManager extends RequestManager
         
     }
 
-    public static void main(String[] args) {
-        String str = "sip:1000@fs.tinysnail.site";
-        String s = ReUtil.get("(?<=sip:)(\\d*?)(?=@)", str, 0);
-        System.out.println(s);
-    }
 }
