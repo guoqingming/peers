@@ -32,7 +32,7 @@ public class CallFrameStateSuccess extends CallFrameState {
     public CallFrameStateSuccess(String id, CallFrame callFrame, Logger logger) {
         super(id, callFrame, logger);
         callPanel = new JPanel();
-        callPanel.add(new JLabel("Talking"));
+        callPanel.add(new JLabel("通话中"));
         JButton hangupButton = new JButton("挂断");
         hangupButton.setBackground(new Color(0xC24E4D));
         hangupButton.setActionCommand(CallFrame.HANGUP_ACTION_COMMAND);

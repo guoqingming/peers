@@ -31,8 +31,8 @@ public class CallFrameStateRemoteHangup extends CallFrameState {
             Logger logger) {
         super(id, callFrame, logger);
         callPanel = new JPanel();
-        callPanel.add(new JLabel("Remote hangup"));
-        JButton closeButton = new JButton("Close");
+        callPanel.add(new JLabel("对方挂断"));
+        JButton closeButton = new JButton("关闭");
         closeButton.setActionCommand(CallFrame.CLOSE_ACTION_COMMAND);
         closeButton.addActionListener(callFrame);
         callPanel.add(closeButton);
